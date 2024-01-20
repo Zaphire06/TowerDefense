@@ -3,22 +3,27 @@ export default class Tower {
 
     constructor(position) {
         this.id = Tower.lastId++; // Attribuer un nouvel ID et incrémenter le dernier ID
-        this.cost = 0; // Coût fixe pour l'instant
-        this.range = 2.5; // Portée de 5 cases de diamètre (2.5 de rayon)
-        this.damage = 5; // Dégâts initiaux
+        this.cost = 50; // Coût fixe pour l'instant
+        this.range = 3; // Portée de 5 cases de diamètre (2.5 de rayon)
+        this.damage = 15; // Dégâts initiaux
         this.position = position; // Position {x, y} sur le plateau
         this.enemiesInRange = []; // Ennemis actuellement à portée
         this.target = null; // Cible actuelle de la tour
+        this.rangeMesh; // Mesh pour représenter la portée de la tour
     }
 
     findEnemiesInRange(enemies) {
         // Mettre à jour la liste des ennemis à portée
         this.enemiesInRange = enemies.filter(enemy => {
-            const distance = Math.sqrt(
+            const inf = 51;
+            if (enemy.pathIndex != -1) {
+                const distance = Math.sqrt(
                 Math.pow(enemy.position.x - this.position.x, 2) + 
                 Math.pow(enemy.position.y - this.position.y, 2)
             );
             return distance <= this.range;
+            }
+            return inf;
         });
 
         // Choisissez un ennemi cible, pour cet exemple, prenons le premier de la liste
@@ -47,7 +52,7 @@ export default class Tower {
     upgrade() {
         // Augmente la portée et les dégâts, par exemple
         this.range += 1;
-        this.damage += 10;
+        this.damage += 15;
         console.log(`Tower ${this.id} upgraded to range ${this.range} and damage ${this.damage}.`);
     }
 

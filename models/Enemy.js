@@ -1,18 +1,23 @@
 export default class Enemy {
-    constructor(health, speed, reward, path) {
+    constructor(health, speed, reward, board) {
         this.health = health;
         this.speed = speed;
         this.damage = 10;
         this.reward = reward;
-        this.path = path;
+        this.grid = board.grid;
+        this.path = board.path;
         this.pathIndex = -1; // Position actuelle de l'ennemi sur le chemin
         this.position = this.path[this.pathIndex]; // Position initiale de l'ennemi sur le chemin
         this.alive = true;
+        this.stuck = false;
     }
 
     move() {
-        // Déplacez l'ennemi le long du chemin
-        this.pathIndex += 1;
+        if (this.stuck == false) {
+            // Déplacez l'ennemi le long du chemin
+            this.pathIndex += 1;
+        }
+
         if (this.pathIndex >= this.path.length) {
             // L'ennemi a atteint la fin du chemin
             // this.alive = false;
@@ -30,7 +35,7 @@ export default class Enemy {
         if (currentTick % this.speed === 0) {
             this.move();
         }
-    
+
         // Autres actions basées sur les ticks
     }
 
@@ -38,7 +43,6 @@ export default class Enemy {
         this.health -= amount;
         if (this.health <= 0) {
             this.alive = false;
-            // Ici, vous pouvez ajouter la logique pour augmenter le score ou les crédits du joueur
         }
     }
 }

@@ -73,6 +73,11 @@ export default class Board {
             path.push({x, y});
             this.grid[y][x] = 1;
         }
+
+        // Si le chemin est trop court, recommencez.
+        if (path.length < 25) {
+            path = this.createPath();
+        }
     
         // Retourne le chemin créé.
         return path;
@@ -83,6 +88,13 @@ export default class Board {
         if (this.grid[y][x] !== 0) return false;
     
         return true; // L'emplacement est valide pour une tour
+    }
+
+    canPlaceFence(x, y) {
+        // Vérifiez que la cellule est vide
+        if (this.grid[y][x] !== 1) return false;
+    
+        return true; // L'emplacement est valide pour une barricade
     }
 
     isPath(x, y) {
