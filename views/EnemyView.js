@@ -1,3 +1,5 @@
+import * as THREE from '../node_modules/three/build/three.module.js';
+
 export default class EnemyView {
     constructor(scene) {
         this.scene = scene;
@@ -11,7 +13,6 @@ export default class EnemyView {
         const cellSize = 1; // Taille des cellules, doit être cohérente avec drawBoard
         const cellSpacing = 0.1; // Espace entre les cellules, doit être cohérent avec drawBoard
         const gridSize = cellSize + cellSpacing;
-        console.log(enemy.path, enemy.pathIndex, enemy.path[enemy.pathIndex], enemy.position)
 
         this.scene.add(mesh);
         enemy.mesh = mesh; // Stocker une référence au mesh dans l'objet ennemi

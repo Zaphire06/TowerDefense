@@ -1,33 +1,48 @@
 import Enemy from "./Enemy.js";
 import Base from "./Base.js";
+import Board from "./Board.js";
+import GameController from "../controllers/GameController.js";
 
 export default class GameModel {
-    constructor(board) {
+    constructor(board, obs, actualLevel, actualLives) {
+        this.observers = obs;
         this.score = 0;
-        this.lives = 20; // Supposons que le joueur commence avec 20 vies
-        this.level = 1;
+        this.lives = actualLives; // Supposons que le joueur commence avec 20 vies
+        this.level = actualLevel;
         this.towers = []; // Liste des tours placées
         this.fences = []; // Liste des tours placées
         this.enemies = []; // Liste des ennemis actuellement sur le plateau
         this.enemySpawnQueue = []; // Liste des ennemis à faire apparaître
-        this.credits = 100; // Supposons que le joueur commence avec 100 crédits
+        this.credits = 100 + 2 * this.level; // Supposons que le joueur commence avec 100 crédits
         this.board = board; // Le plateau de jeu
         this.base = new Base(100); // La base du joueur
-
         this.tick = 0;
         this.tickDuration = 1000; // Durée d'un tick en millisecondes, ajustez selon vos besoins
         this.lastUpdateTime = Date.now();
+        this.gameStopped = false;
     }
 
-    startLevel() {
+    subscribe(observer) {
+        this.observers.push(observer);
+    }
+
+    unsubscribe(observer) {
+        this.observers = this.observers.filter(obs => obs !== observer);
+    }
+
+    notify() {
+        this.observers.forEach(observer => observer.updateUI(this.level, this.credits, this.base.health, this.lives));
+    }
+
+    startLevel(board) {
         // Logique pour démarrer le niveau, comme générer des ennemis
+        this.board = board;
         this.generateEnemies(this.level);
-        console.log("enemies");
     }
 
     generateEnemies(level) {
         // Planifiez la génération des ennemis sur plusieurs ticks
-        this.enemySpawnQueue = Array.from({ length: level * 20 }, () => ({
+        this.enemySpawnQueue = Array.from({ length: level * 2 }, () => ({
             health: 100,
             speed: 1,
             reward: 25
@@ -56,14 +71,17 @@ export default class GameModel {
         }
     }
 
-    update(gameView, uiController) {
-        // console.log("update");
+    update(viewController) {
+        const gameController = GameController.getInstance();
+        if (this.gameStopped) {
+            return;
+        }
+
         this.enemies = this.enemies.filter(enemy => enemy.alive);
-        uiController.updateUI();
+        this.notify();
         const currentTime = Date.now();
         if (currentTime - this.lastUpdateTime > this.tickDuration) {
             this.tick++;
-
             if (this.enemySpawnQueue && this.enemySpawnQueue.length > 0) {
                 const enemyInfo = this.enemySpawnQueue.shift(); // Retirez le premier élément de la file d'attente
                 const newEnemy = new Enemy(enemyInfo.health, enemyInfo.speed, enemyInfo.reward, this.board);
@@ -75,8 +93,7 @@ export default class GameModel {
                 tower.findEnemiesInRange(this.enemies);
                 const attackInfo = tower.attack();
                 if (attackInfo) {
-                    console.log(attackInfo);
-                    gameView.createProjectile(attackInfo);
+                    viewController.towerView.createProjectile(attackInfo);
                 }
             });
 
@@ -86,10 +103,6 @@ export default class GameModel {
                 for (let i = 0; i < fence.enemiesInRange.length; i++) {
                     if (fence.alive) {
                         fence.takeDamage(fence.enemiesInRange[i].damage);
-                    }
-                    if (!fence.alive) {
-                        this.fences.splice(index, 1);
-                        console.log("fence destroyed");
                     }
                 }
             });
@@ -105,9 +118,18 @@ export default class GameModel {
                     }
                 } else {
                     this.credits += enemy.reward;
-                    console.log('dead')
                 }
             });
+
+            if (this.base.health <= 0) {
+                this.gameStopped = true;
+                this.endGame();
+            }
+
+            if (this.enemies.length === 0 && this.enemySpawnQueue.length === 0) {
+                this.gameStopped = true;
+                this.winLevel();
+            }
 
             this.lastUpdateTime = currentTime;
         }
@@ -117,14 +139,25 @@ export default class GameModel {
         this.score += points;
     }
 
-    loseLife() {
-        this.lives -= 1;
-        if (this.lives <= 0) {
-            this.endGame();
-        }
+    winLevel() {
+        this.board = new Board(20, 20);
+        this.level += 1;
+        this.enemySpawnQueue = [];
+        const gameController = GameController.getInstance();
+        gameController.nextLevel(this.board, this.level, this.lives);
+        gameController.gameModel.startLevel(this.board);
     }
 
     endGame() {
-        // Logique pour terminer le jeu, comme afficher un écran de game over
+        const gameController = GameController.getInstance();
+        if (this.lives <= 0) {
+            gameController.gameOver();
+        } else {
+            this.lives -= 1;
+            this.enemySpawnQueue = [];
+            gameController.restartLevel(this.board, this.level, this.lives);
+            gameController.gameModel.startLevel(this.board);
+
+        }
     }
 }

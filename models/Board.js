@@ -25,22 +25,21 @@ export default class Board {
 
     createPath() {
         this.grid = this.createGrid(this.width, this.height);
-    
+
         let x = 0;
-        let y = Math.floor(Math.random() * (this.height - 12)) + 9;
-        console.log("oui", y);
+        let y = Math.floor(Math.random() * (this.height - 14)) + 11;
         let direction = Math.random() < 0.5 ? -1 : 1;
-        let path = [{x, y}];
+        let path = [{ x, y }];
         this.grid[y][x] = 1;  // Marquez le point de départ.
-    
+
         while (x < this.width - 1) {
             let options = [];
-    
+
             // Vérifiez si on peut aller à droite.
             if (x + 1 < this.width && this.grid[y][x + 1] === 0) {
                 options.push('right');
             }
-    
+
             // Vérifiez si on peut aller en haut ou en bas sans coller au chemin existant.
             if (y + direction >= 0 && y + direction < this.height && this.grid[y + direction][x] === 0) {
                 if (x === 0 || this.grid[y + direction][x - 1] === 0) {  // Assurez-vous que la gauche est vide.
@@ -49,15 +48,15 @@ export default class Board {
                     }
                 }
             }
-    
+
             // Pas de mouvement possible, terminer le chemin.
             if (options.length === 0) {
                 break;
             }
-    
+
             // Choisir une direction aléatoire parmi les options disponibles.
             let choice = options[Math.floor(Math.random() * options.length)];
-    
+
             if (choice === 'right') {
                 x++;
             } else if (choice === 'vertical') {
@@ -68,9 +67,9 @@ export default class Board {
                 }
                 //
             }
-    
+
             // Marquez la nouvelle position dans le chemin.
-            path.push({x, y});
+            path.push({ x, y });
             this.grid[y][x] = 1;
         }
 
@@ -78,22 +77,22 @@ export default class Board {
         if (path.length < 25) {
             path = this.createPath();
         }
-    
+
         // Retourne le chemin créé.
         return path;
     }
-    
+
     canPlaceTower(x, y) {
         // Vérifiez que la cellule est vide
         if (this.grid[y][x] !== 0) return false;
-    
+
         return true; // L'emplacement est valide pour une tour
     }
 
     canPlaceFence(x, y) {
         // Vérifiez que la cellule est vide
         if (this.grid[y][x] !== 1) return false;
-    
+
         return true; // L'emplacement est valide pour une barricade
     }
 

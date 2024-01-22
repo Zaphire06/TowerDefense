@@ -1,8 +1,13 @@
+import * as THREE from '../node_modules/three/build/three.module.js';
+
 import Fence from '../models/Fence.js';
+import Preview from './Preview.js';
 
 export default class FenceView {
-    constructor(scene, board) {
+    constructor(scene, camera, renderer, board) {
         this.scene = scene;
+        this.camera = camera;
+        this.renderer = renderer;
         this.board = board;
     }
 
@@ -62,15 +67,45 @@ export default class FenceView {
         // Créer une tour temporaire (sans la positionner sur la grille)
         let x = 0;
         let y = 0;
-        this.fencePreview = new Fence({ x, y }, null);
+        this.fencePreview = Preview.addPreview("fence", { x, y });
         this.addFence(this.fencePreview, true);
-        console.log("showFencePreview", this.fencePreview)
         // Gérez le mouvement de la souris pour mettre à jour la position de l'aperçu
         document.addEventListener('mousemove', this.updatePreviewPosition);
     }
 
     removeFencePreview() {
+        if (this.fencePreview) {
+            this.scene.remove(this.fencePreview.mesh);
+            this.fencePreview = null;
+        }
         // Supprimez le gestionnaire d'événements pour le mouvement de la souris
         document.removeEventListener('mousemove', this.updatePreviewPosition);
+    }
+
+    updatePreviewPosition = (event) => {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((event.clientX - rect.left) / rect.width) * 2 - 1,
+            -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, this.camera);
+
+        const intersects = raycaster.intersectObjects(this.scene.children);
+
+        for (let intersect of intersects) {
+            if (intersect.object.userData.x !== undefined && intersect.object.userData.y !== undefined) {
+                const { x, y } = intersect.object.userData;
+                // Mettez à jour la position de l'aperçu de la tour et du cercle de portée
+                if (this.fencePreview) {
+                    const gridSize = 1.1;
+                    this.fencePreview.mesh.position.set(
+                        (x - this.board.width / 2) * gridSize,
+                        0, // Hauteur au-dessus du sol
+                        (y - this.board.height / 2) * gridSize
+                    );
+                }
+            }
+        }
     }
 }

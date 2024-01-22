@@ -13,10 +13,20 @@ export default class ViewController {
         this.baseView = new BaseView(this.view.scene, gameModel, board);
         this.boardView = new BoardView(this.view.scene, board);
         this.enemyView = new EnemyView(this.view.scene);
-        this.fenceView = new FenceView(this.view.scene, board);
-        this.towerView = new TowerView(this.view.scene, board);
+        this.fenceView = new FenceView(this.view.scene, this.view.camera, this.view.renderer, board);
+        this.towerView = new TowerView(this.view.scene, this.view.camera, this.view.renderer, board);
 
-        this.animation = new Animation(this.view.scene, gameModel, board);
+        this.animation = new Animation(
+            this.view,
+            this.view.stats,
+            gameModel,
+            board,
+            this.baseView,
+            this.boardView,
+            this.enemyView,
+            this.fenceView,
+            this.towerView
+        );
     }
 
     getScene() {
@@ -29,5 +39,41 @@ export default class ViewController {
 
     getRenderer() {
         return this.view.renderer;
+    }
+
+    clearScene() {
+        while (this.view.scene.children.length > 0) {
+            let child = this.view.scene.children[0];
+
+            if (child.geometry) {
+                child.geometry.dispose();
+            }
+
+            if (child.material) {
+                if (child.material instanceof Array) {
+                    // Pour les objets avec plusieurs matériaux
+                    child.material.forEach(material => material.dispose());
+                } else {
+                    child.material.dispose();
+                }
+            }
+
+            if (child.texture) {
+                child.texture.dispose();
+            }
+
+            this.view.scene.remove(child);
+        }
+    }
+
+    changeBoard(board) {
+        this.view.board = board;
+
+        this.baseView.board = board;
+        this.boardView.board = board;
+        this.fenceView.board = board;
+        this.towerView.board = board;
+
+        this.animation.board = board;
     }
 }

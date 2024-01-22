@@ -1,8 +1,13 @@
+import * as THREE from '../node_modules/three/build/three.module.js';
+
 export default class BaseView {
     constructor(scene, gameModel, board) {
         this.scene = scene;
         this.gameModel = gameModel;
         this.board = board;
+
+        // Ajouter la base à la scène
+        this.addBase();
     }
 
     addBase() {
@@ -26,7 +31,7 @@ export default class BaseView {
         // Panneaux lumineux
         for (let i = 0; i < 2; i++) {
             const lightGeometry = new THREE.PlaneGeometry(3, 0.2);
-            const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00 });
+            const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
             const lightMesh = new THREE.Mesh(lightGeometry, lightMaterial);
             lightMesh.position.set(0, 1.1, i === 0 ? 2 : -2);
             lightMesh.rotation.x = Math.PI / 2;

@@ -1,7 +1,15 @@
+import * as THREE from '../node_modules/three/build/three.module.js';
+
 export default class BoardView {
     constructor(scene, board) {
         this.scene = scene;
         this.board = board;
+
+        // Dessinez le plateau avant d'ajouter des éléments supplémentaires
+        this.drawBoard();
+
+        // Ajouter la ville
+        this.addCityToScene(this.scene, this.board);
     }
 
     drawBoard() {
@@ -35,9 +43,6 @@ export default class BoardView {
 
 
     drawPath() {
-        console.log(this.board)
-        console.log(this.board)
-
         const path = this.board.path; // Obtenez les données de chemin
         path.forEach(point => {
             const geometry = new THREE.BoxGeometry(1, 0.1, 1); // Taille des carrés
@@ -53,20 +58,20 @@ export default class BoardView {
 
         // Structure principale du bâtiment
         const geometry = new THREE.BoxGeometry(1, height, 1);
-        const material = new THREE.MeshPhongMaterial({ color: 0x808080 });
+        const material = new THREE.MeshPhongMaterial({ color: 0x000000 });
         const buildingMesh = new THREE.Mesh(geometry, material);
         buildingGroup.add(buildingMesh);
 
         // Éléments lumineux
         const lightGeometry = new THREE.BoxGeometry(1, 0.1, 0.1);
-        const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00 });
+        const lightMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const lightMesh = new THREE.Mesh(lightGeometry, lightMaterial);
         lightMesh.position.set(0, height / 2, 0.45);
         buildingGroup.add(lightMesh);
 
         // Ajouter des arêtes gris clair
         const edgesGeometry = new THREE.EdgesGeometry(geometry);
-        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0xd3d3d3, linewidth: 2 });
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0xd3d3d3, linewidth: 3 });
         const edgesMesh = new THREE.LineSegments(edgesGeometry, edgesMaterial);
         buildingGroup.add(edgesMesh);
 

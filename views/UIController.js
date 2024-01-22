@@ -4,14 +4,16 @@ export default class UIController {
         // Initialisez ici les éléments d'UI (ex: score, vies, etc.)
     }
 
-    updateUI() {
-        const level = this.gameModel.level;
-        const credits = this.gameModel.credits;
-        const baseHealth = this.gameModel.base.health; // Assurez-vous que la base a une propriété 'health'
+    updateUI(levelObs, creditsObs, baseHealthObs, livesObs) {
+        const level = levelObs;
+        const credits = creditsObs;
+        const baseHealth = baseHealthObs; // Assurez-vous que la base a une propriété 'health'
+        const lives = livesObs;
 
         document.getElementById('level-value').innerText = level;
         document.getElementById('credits-value').innerText = credits;
         document.getElementById('base-health-value').innerText = baseHealth + '%';
+        document.getElementById('lives-value').innerText = "Vies : " + lives;
     }
 
     // Vous pouvez ajouter d'autres méthodes pour gérer des interactions spécifiques d'UI

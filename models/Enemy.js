@@ -22,7 +22,6 @@ export default class Enemy {
             // L'ennemi a atteint la fin du chemin
             // this.alive = false;
             this.pathIndex = this.path.length - 1;
-            console.log("Enemy reached end of path");
             // Vous pouvez ici déclencher la perte d'une vie ou d'autres conséquences
         } else {
             // Mettre à jour la position de l'ennemi

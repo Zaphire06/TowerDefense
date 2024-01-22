@@ -1,9 +1,14 @@
+import * as THREE from '../node_modules/three/build/three.module.js';
 import Tower from '../models/Tower.js';
+import Preview from './Preview.js';
 
 export default class TowerView {
-    constructor(scene, board) {
+    constructor(scene, camera, renderer, board) {
         this.scene = scene;
+        this.camera = camera;
+        this.renderer = renderer;
         this.board = board;
+        this.projectiles = []; // Initialiser le tableau des projectiles
     }
 
     addTower(tower, isPreview) {
@@ -23,14 +28,14 @@ export default class TowerView {
 
         // Géométrie et matériel de la tour principale
         const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 32);
-        const material = new THREE.MeshPhongMaterial({ color: 0x336699, emissive: 0x224466 });
+        const material = new THREE.MeshPhongMaterial({ color: 0x000000, emissive: 0x000000 });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(0, 1, 0); // Position au-dessus du socle
         towerGroup.add(mesh);
 
         // Ajouter une antenne
         const antennaGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 8);
-        const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x66ccff, emissive: 0x4488aa });
+        const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00, emissive: 0x00ff00 });
         const antennaMesh = new THREE.Mesh(antennaGeometry, antennaMaterial);
         antennaMesh.position.set(0, 2, 0); // Position au sommet de la tour
         towerGroup.add(antennaMesh);
@@ -50,7 +55,6 @@ export default class TowerView {
 
         // Créer un cercle pour le rayon de tir
         if (isPreview) {
-            console.log("preview")
             const rangeGeometry = new THREE.CircleGeometry(tower.range, 32);
             const rangeMaterial = new THREE.MeshBasicMaterial({
                 color: 0x00ff00,
@@ -79,9 +83,8 @@ export default class TowerView {
         // Créer une tour temporaire (sans la positionner sur la grille)
         let x = 0;
         let y = 0;
-        this.towerPreview = new Tower({ x, y });
+        this.towerPreview = Preview.addPreview("tower", { x, y });
         this.addTower(this.towerPreview, true);
-        console.log("showTowerPreview",)
         // Gérez le mouvement de la souris pour mettre à jour la position de l'aperçu
         document.addEventListener('mousemove', this.updatePreviewPosition);
     }
@@ -98,9 +101,45 @@ export default class TowerView {
         document.removeEventListener('mousemove', this.updatePreviewPosition);
     }
 
+    updatePreviewPosition = (event) => {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2(
+            ((event.clientX - rect.left) / rect.width) * 2 - 1,
+            -((event.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, this.camera);
+
+        const intersects = raycaster.intersectObjects(this.scene.children);
+
+        for (let intersect of intersects) {
+            if (intersect.object.userData.x !== undefined && intersect.object.userData.y !== undefined) {
+                const { x, y } = intersect.object.userData;
+                // Mettez à jour la position de l'aperçu de la tour et du cercle de portée
+                if (this.towerPreview) {
+                    const gridSize = 1.1;
+                    this.towerPreview.mesh.position.set(
+                        (x - this.board.width / 2) * gridSize,
+                        0, // Hauteur au-dessus du sol
+                        (y - this.board.height / 2) * gridSize
+                    );
+
+                    if (this.towerPreview.rangeMesh) {
+                        this.towerPreview.rangeMesh.position.set(
+                            (x - this.board.width / 2) * gridSize,
+                            0.06, // Juste au-dessus du sol
+                            (y - this.board.height / 2) * gridSize
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     createProjectile(attackInfo) {
         if (!attackInfo || !attackInfo.target || !attackInfo.position || !attackInfo.target.position) return;
 
+        // Créer un projectile
         const projectileGeometry = new THREE.SphereGeometry(0.2, 8, 8); // Taille réduite
         const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
         const projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
@@ -122,6 +161,7 @@ export default class TowerView {
             (attackInfo.target.position.y - this.board.height / 2) * 1.1
         );
 
+
         this.projectiles.push({
             mesh: projectile,
             target: attackInfo.target,
@@ -130,5 +170,4 @@ export default class TowerView {
             progress: 0
         });
     }
-
 }

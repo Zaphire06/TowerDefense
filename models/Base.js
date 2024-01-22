@@ -5,7 +5,6 @@ export default class Base {
 
     takeDamage(amount) {
         this.health -= amount;
-        console.log("base", this.health, "amount", amount);
         if (this.health < 0) this.health = 0;
     }
 
